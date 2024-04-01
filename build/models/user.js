@@ -37,6 +37,18 @@ function UserFactory(sequelize) {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false
         },
+        state: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false
+        },
+        country: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false
+        },
+        province: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false
+        },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             defaultValue: sequelize_1.DataTypes.NOW

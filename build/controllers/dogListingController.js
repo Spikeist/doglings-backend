@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDogListing = exports.editDogInfo = exports.addDog = exports.getDogInfo = exports.getAllDogs = void 0;
+exports.findByBreed = exports.deleteDogListing = exports.editDogInfo = exports.addDog = exports.getDogInfo = exports.getAllDogs = void 0;
 const listing_1 = require("../models/listing");
 const user_1 = require("../models/user");
 const auth_1 = require("../services/auth");
@@ -93,3 +93,32 @@ const deleteDogListing = async (req, res, next) => {
     }
 };
 exports.deleteDogListing = deleteDogListing;
+const findByBreed = async (req, res, next) => {
+    let breedParams = req.params.breed;
+    let breedDogs = await listing_1.DogListing.findAll({
+        where: {
+            breed: breedParams
+        }
+    });
+    res.status(200).json(breedDogs);
+};
+exports.findByBreed = findByBreed;
+// export const findByLocation: RequestHandler = async (req, res, next) => {
+//     let user: User | null = await verifyUser(req);
+//     if(!user){
+//         return res.status(401).send('please sign in to find by location')
+//     }
+//     let paramsLocation = req.params.location;
+//     let closeUsers: User[] | [] = await User.findAll({
+//         where: {
+//             state: paramsLocation
+//         }
+//     })
+//     let closeDogs: DogListing[][] = await Promise.all(closeUsers.flatMap(async (usr) => {
+//         return await DogListing.findAll({
+//             where: {
+//                 userId: usr.userId
+//             }
+//         });
+//     }));
+// }
