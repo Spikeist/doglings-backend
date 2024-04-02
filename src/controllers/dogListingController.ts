@@ -5,19 +5,19 @@ import { verifyUser } from "../services/auth";
 
 export const getAllDogs: RequestHandler = async (req, res, next) => {
     let {Op} = require("sequelize")
-    let query = req.query;
+    let {breed, gender, maxPrice} = req.query;
     let dogs: DogListing[] = [];
-    if(query.breed){
-        if(query.gender){
+    if(breed){
+        if(gender){
 
-            if(query.maxPrice){
+            if(maxPrice){
 
                 dogs = await DogListing.findAll({
                     where: {
                         [Op.and] : [
-                            {breed : query.breed},
-                            {gender: query.gender},
-                            {price: query.maxPrice}
+                            {breed : breed},
+                            {gender: gender},
+                            {price: maxPrice}
                         ]
                     }
                 })
@@ -26,8 +26,8 @@ export const getAllDogs: RequestHandler = async (req, res, next) => {
                 dogs = await DogListing.findAll({
                     where: {
                         [Op.and] : [
-                            {breed : query.breed},
-                            {gender: query.gender}
+                            {breed : breed},
+                            {gender: gender}
                         ]
                     }
                 })
@@ -37,21 +37,21 @@ export const getAllDogs: RequestHandler = async (req, res, next) => {
             dogs = await DogListing.findAll({
                 where: {
                     breed: {
-                        [Op.equal] : query.breed
+                        [Op.equal] : breed
                     }
                 }
             })
         }
     }
-    if(query.gender){
+    if(gender){
 
-        if(query.maxPrice){
+        if(maxPrice){
 
             dogs = await DogListing.findAll({
                 where: {
                     [Op.and] : [
-                        {gender: query.gender},
-                        {price: query.maxPrice}
+                        {gender: gender},
+                        {price: maxPrice}
                     ]
                 }
             })
@@ -60,29 +60,29 @@ export const getAllDogs: RequestHandler = async (req, res, next) => {
             dogs = await DogListing.findAll({
                 where: {
                     gender: {
-                        [Op.equal] : query.gender
+                        [Op.equal] : gender
                     }
                 }
             })
         }
 
     }
-    if(query.maxPrice){
+    if(maxPrice){
 
         dogs = await DogListing.findAll({
             where: {
                 price: {
-                    [Op.equal] : query.maxPrice
+                    [Op.equal] : maxPrice
                 }
             }
         })
 
     }
-    if(!query){
+    else{
         dogs = await DogListing.findAll();
     }
 
-
+   
     res.status(200).json(dogs)
 }
 

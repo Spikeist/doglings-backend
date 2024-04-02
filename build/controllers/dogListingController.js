@@ -6,17 +6,17 @@ const user_1 = require("../models/user");
 const auth_1 = require("../services/auth");
 const getAllDogs = async (req, res, next) => {
     let { Op } = require("sequelize");
-    let query = req.query;
+    let { breed, gender, maxPrice } = req.query;
     let dogs = [];
-    if (query.breed) {
-        if (query.gender) {
-            if (query.maxPrice) {
+    if (breed) {
+        if (gender) {
+            if (maxPrice) {
                 dogs = await listing_1.DogListing.findAll({
                     where: {
                         [Op.and]: [
-                            { breed: query.breed },
-                            { gender: query.gender },
-                            { price: query.maxPrice }
+                            { breed: breed },
+                            { gender: gender },
+                            { price: maxPrice }
                         ]
                     }
                 });
@@ -25,8 +25,8 @@ const getAllDogs = async (req, res, next) => {
                 dogs = await listing_1.DogListing.findAll({
                     where: {
                         [Op.and]: [
-                            { breed: query.breed },
-                            { gender: query.gender }
+                            { breed: breed },
+                            { gender: gender }
                         ]
                     }
                 });
@@ -36,19 +36,19 @@ const getAllDogs = async (req, res, next) => {
             dogs = await listing_1.DogListing.findAll({
                 where: {
                     breed: {
-                        [Op.equal]: query.breed
+                        [Op.equal]: breed
                     }
                 }
             });
         }
     }
-    if (query.gender) {
-        if (query.maxPrice) {
+    if (gender) {
+        if (maxPrice) {
             dogs = await listing_1.DogListing.findAll({
                 where: {
                     [Op.and]: [
-                        { gender: query.gender },
-                        { price: query.maxPrice }
+                        { gender: gender },
+                        { price: maxPrice }
                     ]
                 }
             });
@@ -57,22 +57,22 @@ const getAllDogs = async (req, res, next) => {
             dogs = await listing_1.DogListing.findAll({
                 where: {
                     gender: {
-                        [Op.equal]: query.gender
+                        [Op.equal]: gender
                     }
                 }
             });
         }
     }
-    if (query.maxPrice) {
+    if (maxPrice) {
         dogs = await listing_1.DogListing.findAll({
             where: {
                 price: {
-                    [Op.equal]: query.maxPrice
+                    [Op.equal]: maxPrice
                 }
             }
         });
     }
-    if (!query) {
+    else {
         dogs = await listing_1.DogListing.findAll();
     }
     res.status(200).json(dogs);
