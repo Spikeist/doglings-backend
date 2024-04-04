@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { addDog, deleteDogListing, editDogInfo, findByBreed, getAllDogs, getDogInfo } from "../controllers/dogListingController";
+import { addDog, deleteDogListing, editDogInfo, getAllDogs, getDogInfo, getMyDogs } from "../controllers/dogListingController";
 
 const router = Router();
 
 router.get('/', getAllDogs);
+router.get('/my-dogs', getMyDogs);
 router.get('/:id', getDogInfo);
-router.get('/:breed', findByBreed);
-// router.get('/:location', findByLocation)
 
 router.post('/post-listing', addDog);
 

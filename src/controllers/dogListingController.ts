@@ -2,9 +2,119 @@ import { RequestHandler } from "express";
 import { DogListing } from "../models/listing";
 import { User } from "../models/user";
 import { verifyUser } from "../services/auth";
+import { Op } from "sequelize";
 
 export const getAllDogs: RequestHandler = async (req, res, next) => {
-    let dogs: DogListing[] = await DogListing.findAll();
+    
+    let dogs: DogListing[] = []
+
+    const breed = req.query.breed as string;
+    const gender = req.query.gender as string;
+    let maxPrice = req.query.maxPrice as string;
+
+    let breedSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                breed: {
+                  [Op.like]: `%${breed}%`
+                }
+              }
+        })
+    }
+    let genderSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                gender: {
+                    [Op.eq]: gender
+                }
+              }
+        })
+    }
+    let maxPriceSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                gender: {
+                    [Op.eq]: gender
+                }
+              }
+        })
+    }
+    let breedGenderSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                [Op.and]: [
+                    {breed: {
+                        [Op.like]: `%${breed}%`
+                    }},
+                    {gender: {
+                        [Op.eq]: gender
+                    }}
+                ]
+            }
+        })
+    }
+    let breedMaxPriceSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                [Op.and]: [
+                    {breed: {
+                        [Op.like]: `%${breed}%`
+                    }},
+                    {price: {
+                        [Op.lte]: maxPrice
+                    }}
+                ]
+            }
+        })
+    }
+    let genderMaxPriceSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                [Op.and]: [
+                    {gender: {
+                        [Op.eq]: gender
+                    }},
+                    {price: {
+                        [Op.lte]: maxPrice
+                    }}
+                ]
+            }
+        })
+    }
+    let breedGenderMaxPriceSearch = async () => {
+        dogs = await DogListing.findAll({
+            where: {
+                [Op.and]: [
+                    {breed: {
+                        [Op.like]: `%${breed}%`
+                    }},
+                    {gender: {
+                        [Op.eq]: gender
+                    }},
+                    {price: {
+                        [Op.lte]: maxPrice
+                    }}
+                ]
+            }
+        })
+    }
+
+    if (breed && gender && maxPrice) {
+        await breedGenderMaxPriceSearch();
+    } else if (breed && gender) {
+        await breedGenderSearch();
+    } else if (breed && maxPrice) {
+        await breedMaxPriceSearch();
+    } else if (gender && maxPrice) {
+        await genderMaxPriceSearch();
+    } else if (breed) {
+        await breedSearch();
+    } else if (gender) {
+        await genderSearch();
+    } else if (maxPrice) {
+        await maxPriceSearch();
+    }
+
     res.status(200).json(dogs)
 }
 
@@ -20,17 +130,39 @@ export const getDogInfo: RequestHandler = async (req, res, next) =>{
     }
 }
 
-export const addDog: RequestHandler = async (req, res, next) => {
+export const getMyDogs: RequestHandler = async (req, res, next) => {
     let user: User | null = await verifyUser(req);
-    let dogBody: DogListing = req.body;
-
     if(!user){
         return res.status(401).send('please sign in to add a listing')
     }
 
     try{
+        let myDogs: DogListing[] | null = await DogListing.findAll({
+            where: {
+                userId: user.userId
+            }
+        })
 
-        dogBody.userId = user.userId;
+        res.status(200).json(myDogs)
+    }
+    catch(error){
+        res.status(400).send(error)
+    }
+}
+
+export const addDog: RequestHandler = async (req, res, next) => {
+    let user: User | null = await verifyUser(req);
+    let dogBody: DogListing = req.body;
+
+
+    if(!user){
+        return res.status(401).send('please sign in to add a listing')
+    }
+
+    dogBody.userId = user.userId
+
+    console.log(dogBody)
+    try{
 
         let created = await DogListing.create(dogBody);
         res.status(201).json(created);
@@ -87,14 +219,14 @@ export const deleteDogListing: RequestHandler = async (req, res, next) => {
     if(idedDog){
 
         if(idedDog.userId === user.userId){
-            await User.destroy({
+            await DogListing.destroy({
                 where: {
-                    userId: reqId
+                    dogId: reqId
                 }
             })
 
             res.status(200).json({
-                userId: user.userId,
+                dogId: idedDog.dogId,
                 deleted: true
             })
         }
@@ -108,40 +240,3 @@ export const deleteDogListing: RequestHandler = async (req, res, next) => {
 
 
 }
-
-export const findByBreed: RequestHandler = async (req, res, next) => {
-    let breedParams = req.params.breed
-
-    let breedDogs: DogListing[] | [] = await DogListing.findAll({
-        where:{
-            breed: breedParams
-        }
-    })
-
-    res.status(200).json(breedDogs);
-}
-
-// export const findByLocation: RequestHandler = async (req, res, next) => {
-//     let user: User | null = await verifyUser(req);
-
-//     if(!user){
-//         return res.status(401).send('please sign in to find by location')
-//     }
-
-//     let paramsLocation = req.params.location;
-//     let closeUsers: User[] | [] = await User.findAll({
-//         where: {
-//             state: paramsLocation
-//         }
-//     })
-
-//     let closeDogs: DogListing[][] = await Promise.all(closeUsers.flatMap(async (usr) => {
-//         return await DogListing.findAll({
-//             where: {
-//                 userId: usr.userId
-//             }
-//         });
-//     }));
-     
-
-// }

@@ -1,11 +1,121 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findByBreed = exports.deleteDogListing = exports.editDogInfo = exports.addDog = exports.getDogInfo = exports.getAllDogs = void 0;
+exports.deleteDogListing = exports.editDogInfo = exports.addDog = exports.getMyDogs = exports.getDogInfo = exports.getAllDogs = void 0;
 const listing_1 = require("../models/listing");
-const user_1 = require("../models/user");
 const auth_1 = require("../services/auth");
+const sequelize_1 = require("sequelize");
 const getAllDogs = async (req, res, next) => {
-    let dogs = await listing_1.DogListing.findAll();
+    let dogs = [];
+    const breed = req.query.breed;
+    const gender = req.query.gender;
+    let maxPrice = req.query.maxPrice;
+    let breedSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                breed: {
+                    [sequelize_1.Op.like]: `%${breed}%`
+                }
+            }
+        });
+    };
+    let genderSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                gender: {
+                    [sequelize_1.Op.eq]: gender
+                }
+            }
+        });
+    };
+    let maxPriceSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                gender: {
+                    [sequelize_1.Op.eq]: gender
+                }
+            }
+        });
+    };
+    let breedGenderSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                [sequelize_1.Op.and]: [
+                    { breed: {
+                            [sequelize_1.Op.like]: `%${breed}%`
+                        } },
+                    { gender: {
+                            [sequelize_1.Op.eq]: gender
+                        } }
+                ]
+            }
+        });
+    };
+    let breedMaxPriceSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                [sequelize_1.Op.and]: [
+                    { breed: {
+                            [sequelize_1.Op.like]: `%${breed}%`
+                        } },
+                    { price: {
+                            [sequelize_1.Op.lte]: maxPrice
+                        } }
+                ]
+            }
+        });
+    };
+    let genderMaxPriceSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                [sequelize_1.Op.and]: [
+                    { gender: {
+                            [sequelize_1.Op.eq]: gender
+                        } },
+                    { price: {
+                            [sequelize_1.Op.lte]: maxPrice
+                        } }
+                ]
+            }
+        });
+    };
+    let breedGenderMaxPriceSearch = async () => {
+        dogs = await listing_1.DogListing.findAll({
+            where: {
+                [sequelize_1.Op.and]: [
+                    { breed: {
+                            [sequelize_1.Op.like]: `%${breed}%`
+                        } },
+                    { gender: {
+                            [sequelize_1.Op.eq]: gender
+                        } },
+                    { price: {
+                            [sequelize_1.Op.lte]: maxPrice
+                        } }
+                ]
+            }
+        });
+    };
+    if (breed && gender && maxPrice) {
+        await breedGenderMaxPriceSearch();
+    }
+    else if (breed && gender) {
+        await breedGenderSearch();
+    }
+    else if (breed && maxPrice) {
+        await breedMaxPriceSearch();
+    }
+    else if (gender && maxPrice) {
+        await genderMaxPriceSearch();
+    }
+    else if (breed) {
+        await breedSearch();
+    }
+    else if (gender) {
+        await genderSearch();
+    }
+    else if (maxPrice) {
+        await maxPriceSearch();
+    }
     res.status(200).json(dogs);
 };
 exports.getAllDogs = getAllDogs;
@@ -20,14 +130,33 @@ const getDogInfo = async (req, res, next) => {
     }
 };
 exports.getDogInfo = getDogInfo;
+const getMyDogs = async (req, res, next) => {
+    let user = await (0, auth_1.verifyUser)(req);
+    if (!user) {
+        return res.status(401).send('please sign in to add a listing');
+    }
+    try {
+        let myDogs = await listing_1.DogListing.findAll({
+            where: {
+                userId: user.userId
+            }
+        });
+        res.status(200).json(myDogs);
+    }
+    catch (error) {
+        res.status(400).send(error);
+    }
+};
+exports.getMyDogs = getMyDogs;
 const addDog = async (req, res, next) => {
     let user = await (0, auth_1.verifyUser)(req);
     let dogBody = req.body;
     if (!user) {
         return res.status(401).send('please sign in to add a listing');
     }
+    dogBody.userId = user.userId;
+    console.log(dogBody);
     try {
-        dogBody.userId = user.userId;
         let created = await listing_1.DogListing.create(dogBody);
         res.status(201).json(created);
     }
@@ -74,13 +203,13 @@ const deleteDogListing = async (req, res, next) => {
     let idedDog = await listing_1.DogListing.findByPk(reqId);
     if (idedDog) {
         if (idedDog.userId === user.userId) {
-            await user_1.User.destroy({
+            await listing_1.DogListing.destroy({
                 where: {
-                    userId: reqId
+                    dogId: reqId
                 }
             });
             res.status(200).json({
-                userId: user.userId,
+                dogId: idedDog.dogId,
                 deleted: true
             });
         }
@@ -93,32 +222,3 @@ const deleteDogListing = async (req, res, next) => {
     }
 };
 exports.deleteDogListing = deleteDogListing;
-const findByBreed = async (req, res, next) => {
-    let breedParams = req.params.breed;
-    let breedDogs = await listing_1.DogListing.findAll({
-        where: {
-            breed: breedParams
-        }
-    });
-    res.status(200).json(breedDogs);
-};
-exports.findByBreed = findByBreed;
-// export const findByLocation: RequestHandler = async (req, res, next) => {
-//     let user: User | null = await verifyUser(req);
-//     if(!user){
-//         return res.status(401).send('please sign in to find by location')
-//     }
-//     let paramsLocation = req.params.location;
-//     let closeUsers: User[] | [] = await User.findAll({
-//         where: {
-//             state: paramsLocation
-//         }
-//     })
-//     let closeDogs: DogListing[][] = await Promise.all(closeUsers.flatMap(async (usr) => {
-//         return await DogListing.findAll({
-//             where: {
-//                 userId: usr.userId
-//             }
-//         });
-//     }));
-// }
