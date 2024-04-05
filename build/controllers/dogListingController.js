@@ -5,7 +5,7 @@ const listing_1 = require("../models/listing");
 const auth_1 = require("../services/auth");
 const sequelize_1 = require("sequelize");
 const getAllDogs = async (req, res, next) => {
-    let dogs = [];
+    let dogs = await listing_1.DogListing.findAll();
     const breed = req.query.breed;
     const gender = req.query.gender;
     let maxPrice = req.query.maxPrice;
