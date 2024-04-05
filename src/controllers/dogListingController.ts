@@ -6,7 +6,7 @@ import { Op } from "sequelize";
 
 export const getAllDogs: RequestHandler = async (req, res, next) => {
     
-    let dogs: DogListing[] = []
+    let dogs: DogListing[] = await DogListing.findAll();
 
     const breed = req.query.breed as string;
     const gender = req.query.gender as string;
