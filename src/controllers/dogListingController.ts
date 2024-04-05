@@ -33,8 +33,8 @@ export const getAllDogs: RequestHandler = async (req, res, next) => {
     let maxPriceSearch = async () => {
         dogs = await DogListing.findAll({
             where: {
-                gender: {
-                    [Op.eq]: gender
+                price: {
+                    [Op.lte]: maxPrice
                 }
               }
         })

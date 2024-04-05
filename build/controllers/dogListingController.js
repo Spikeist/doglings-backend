@@ -30,8 +30,8 @@ const getAllDogs = async (req, res, next) => {
     let maxPriceSearch = async () => {
         dogs = await listing_1.DogListing.findAll({
             where: {
-                gender: {
-                    [sequelize_1.Op.eq]: gender
+                price: {
+                    [sequelize_1.Op.lte]: maxPrice
                 }
             }
         });
