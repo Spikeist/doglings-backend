@@ -5,8 +5,16 @@ import { verifyUser } from "../services/auth";
 import { Op } from "sequelize";
 
 export const getAllDogs: RequestHandler = async (req, res, next) => {
+
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 0;
     
-    let dogs: DogListing[] = await DogListing.findAll();
+    let dogs: DogListing[];
+
+    if (limit > 0) {
+        dogs = await DogListing.findAll({ limit: limit });
+    } else {
+        dogs = await DogListing.findAll();
+    }
 
     const breed = req.query.breed as string;
     const gender = req.query.gender as string;
