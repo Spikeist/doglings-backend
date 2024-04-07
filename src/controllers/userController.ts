@@ -3,10 +3,19 @@ import { User } from "../models/user";
 import { comparePasswords, hashedPassword, tokenAssigner, verifyUser } from "../services/auth";
 
 
-export const getAllUsers: RequestHandler = async (req, res, next) => {
-    let users : User[] = await User.findAll() 
+export const getUserInfo: RequestHandler = async (req, res, next) => {
+    let users : User | null ; 
 
-    res.status(200).json(users);
+    let selectedId = req.query.id ? parseInt(req.query.id as string) : 0
+
+    if (selectedId > 0) {
+        users = await User.findOne({
+            where: {
+                userId: selectedId
+            }
+        });
+        res.status(200).json(users);
+    }
 }
 
 export const registerUser: RequestHandler = async (req, res, next) => {
